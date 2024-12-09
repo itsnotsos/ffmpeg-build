@@ -1,0 +1,51 @@
+name: Build FFmpeg
+
+on:
+  workflow_dispatch:
+    inputs:
+      architecture:
+        description: 'Specify the architecture (e.g., armv7-a, x86, arm64-v8a). Leave blank to build all.'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Clone MX FFmpeg Repository
+        run: |
+          git clone https://github.com/MXVideoPlayer/MX-FFmpeg.git
+          cd MX-FFmpeg
+
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential yasm nasm unzip zlib1g-dev
+
+      - name: Prepare environment
+        working-directory: MX-FFmpeg/ffmpeg/JNI
+        run: |
+          chmod +x rebuild-ffmpeg.sh build-ffmpeg.sh
+
+      - name: Build FFmpeg
+        working-directory: MX-FFmpeg/ffmpeg/JNI
+        run: |
+          if [ "${{ github.event.inputs.architecture }}" == "" ]; then
+            ./rebuild-ffmpeg.sh
+          else
+            ./build-ffmpeg.sh "${{ github.event.inputs.architecture }}"
+          fi
+
+      - name: Archive build output
+        if: success()
+        working-directory: MX-FFmpeg/ffmpeg
+        run: |
+          mkdir -p artifacts
+          cp -r libs artifacts/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-libraries
+          path: MX-FFmpeg/ffmpeg/artifacts/libs
