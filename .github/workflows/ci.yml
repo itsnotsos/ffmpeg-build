@@ -1,4 +1,4 @@
-name: Build FFmpeg
+name: Debug FFmpeg Build
 
 on:
   workflow_dispatch:
@@ -14,9 +14,11 @@ jobs:
 
     steps:
       - name: Clone MX FFmpeg Repository
+        run: git clone https://github.com/MXVideoPlayer/MX-FFmpeg.git
+
+      - name: List files for debugging
         run: |
-          git clone https://github.com/MXVideoPlayer/MX-FFmpeg.git
-          cd MX-FFmpeg
+          ls -R MX-FFmpeg
 
       - name: Install dependencies
         run: |
@@ -32,20 +34,17 @@ jobs:
         working-directory: MX-FFmpeg/ffmpeg/JNI
         run: |
           if [ "${{ github.event.inputs.architecture }}" == "" ]; then
-            ./build.sh
+            ./rebuild-ffmpeg.sh
           else
-            ./build.sh "${{ github.event.inputs.architecture }}"
+            ./build-ffmpeg.sh "${{ github.event.inputs.architecture }}"
           fi
 
-      - name: Archive build output
-        if: success()
-        working-directory: MX-FFmpeg/ffmpeg
+      - name: Upload build logs for debugging
+        if: failure()
         run: |
-          mkdir -p artifacts
-          cp -r libs artifacts/
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+          mkdir -p build-logs
+          cp -r ../logs/* build-logs/
+        uses: actions/upload-artifact@v3
         with:
-          name: ffmpeg-libraries
-          path: MX-FFmpeg/ffmpeg/artifacts/libs
+          name: build-logs
+          path: build-logs
