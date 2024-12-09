@@ -16,9 +16,9 @@ jobs:
       - name: Clone MX FFmpeg Repository
         run: git clone https://github.com/MXVideoPlayer/MX-FFmpeg.git
 
-      - name: List files for debugging
-        run: |
-          ls -R MX-FFmpeg
+      - name: Patch Makefile to remove invalid references
+        working-directory: MX-FFmpeg/ffmpeg/JNI/ffmpeg
+        run: sed -i '/\/tests\/Makefile/d' Makefile
 
       - name: Install dependencies
         run: |
