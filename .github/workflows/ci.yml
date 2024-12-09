@@ -28,14 +28,16 @@ jobs:
       - name: Prepare environment
         working-directory: MX-FFmpeg/ffmpeg/JNI
         run: |
-          chmod +x rebuild-ffmpeg.sh build-ffmpeg.sh
+          chmod +x rebuild-ffmpeg.sh build-ffmpeg.sh config-ffmpeg.sh
 
       - name: Build FFmpeg
         working-directory: MX-FFmpeg/ffmpeg/JNI
         run: |
           if [ "${{ github.event.inputs.architecture }}" == "" ]; then
+            ./config-ffmpeg.sh
             ./rebuild-ffmpeg.sh
           else
+            ./config-ffmpeg.sh
             ./build-ffmpeg.sh "${{ github.event.inputs.architecture }}"
           fi
 
